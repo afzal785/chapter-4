@@ -1,0 +1,49 @@
+import sys
+
+# Number of vertices in the graph
+V = 6
+
+# Define infinity as the large enough value. This value will be used for vertices not connected to each other
+INF = sys.maxsize
+
+# A function to implement Floyd's algorithm for finding the shortest path
+def floyd_warshall(graph):
+    dist = list(map(lambda i: list(map(lambda j: j, i)), graph))
+
+    for k in range(V):
+        for i in range(V):
+            for j in range(V):
+                dist[i][j] = min(dist[i][j], dist[i][k] + dist[k][j])
+
+    return dist
+
+# Define the graph with the given input
+graph = [
+    [0, 3, 8, INF, -4, INF],
+    [INF, 0, INF, 1, 7, INF],
+    [INF, 4, 0, INF, INF, 2],
+    [2, INF, -5, 0, INF, INF],
+    [INF, INF, INF, 6, 0, INF],
+    [INF, INF, INF, INF, -3, 0]
+]
+
+# Function to simulate link failure between two routers
+def simulate_link_failure(graph, router1, router2):
+    graph[router1][router2] = INF
+    graph = floyd_warshall(graph)
+    return graph
+
+# Get the shortest path from Router A to Router F before link failure
+shortest_paths_before_failure = floyd_warshall(graph)
+shortest_path_A_to_F_before_failure = shortest_paths_before_failure[0][5]
+
+# Simulate link failure between Router B and Router D
+graph = simulate_link_failure(graph, 1, 3)
+
+# Get the shortest path from Router A to Router F after link failure
+shortest_paths_after_failure = floyd_warshall(graph)
+shortest_path_A_to_F_after_failure = shortest_paths_after_failure[0][5]
+
+# Display the shortest path from Router A to Router F before and after the link failure
+print(f"Router A to Router F before failure = {shortest_path_A_to_F_before_failure}")
+print(f"Router A to Router F after failure = {shortest_path_A_to_F_after_failure}")
