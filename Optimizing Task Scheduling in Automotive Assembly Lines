@@ -1,0 +1,39 @@
+from ortools.sat.python import cp_model
+
+def minimize_production_time():
+    model = cp_model.CpModel()
+
+    stations = 3
+    lines = 3
+
+    station_times = [[5, 9, 3], [6, 8, 4], [7, 6, 5]]
+    transfer_times = [[0, 2, 3], [2, 0, 4], [3, 4, 0]]
+    dependencies = [(0, 1), (1, 2)]
+
+    all_tasks = {}
+    for i in range(stations):
+        for j in range(lines):
+            all_tasks[(i, j)] = model.NewIntervalVar(0, 100, True, f"task_{i}_{j}")
+
+    for i in range(stations):
+        for j in range(lines):
+            if i > 0:
+                model.Add(all_tasks[(i, j)].StartsAfterEnd(all_tasks[(i - 1, j)])
+            if (i, j) in dependencies:
+                model.Add(all_tasks[(i, j)].StartsAfterEnd(all_tasks[(i - 1, j)])
+
+    for j in range(lines):
+        model.Minimize(all_tasks[(stations - 1, j)].EndExpr())
+
+    solver = cp_model.CpSolver()
+    status = solver.Solve(model)
+
+    if status == cp_model.OPTIMAL:
+        for j in range(lines):
+            print(f"Line {j+1}:")
+            for i in range(stations):
+                start = solver.Value(all_tasks[(i, j)].StartVar())
+                end = solver.Value(all_tasks[(i, j)].EndVar())
+                print(f"Station {i+1}: Start Time {start}, End Time {end}")
+
+minimize_production_time()
